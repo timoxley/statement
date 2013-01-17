@@ -82,6 +82,39 @@ describe('Machine Operations', function() {
       machine.setState(disabledState.name)
       assert.strictEqual(machine.getState(), disabledState)
     })
+    it('does nothing if changing to the same state', function(done) {
+      machine.setState(enabledState)
+      machine.once('enter Enabled', function() {
+        throw new Error('Should not transition to same state.')
+      })
+      machine.setState(enabledState)
+      setTimeout(done, 0)
+    })
+    it('enters and leaves states in a sane order', function(done) {
+      var EXPECTED = 2
+      var transitions = []
+      function push(action, state) {
+        transitions.push(action + ' ' + state)
+        console.log('transitions', transitions)
+        if (transitions.length === EXPECTED) {
+          assert.deepEqual(transitions, [
+            'leave Disabled',
+            'enter Enabled'
+          ])
+          done()
+        }
+      }
+
+      machine.on('enter', function(state) {
+        push('enter', state)
+      })
+      machine.on('leave', function(state) {
+        push('leave', state)
+      })
+
+      assert.strictEqual(machine.getState(), disabledState)
+      machine.trigger('enable')
+    })
     describe('events', function() {
       it('fires "leave state.name" when leaving a state', function(done) {
         machine.once('leave Disabled', function() {

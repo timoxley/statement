@@ -94,11 +94,14 @@ State.prototype.setState = function setState(stateNames) {
   if (!newStateName) throw new Error('Invalid State: ' + newStateName)
   var enteringState = this.getState(newStateName)
   var leavingState = this.state
-  debug('leaving ' + enteringState.name)
+  if (leavingState === enteringState) return
+  leavingState && debug('leaving ' + leavingState.name)
   leavingState && this.emit('leave ' + leavingState.name)
+  leavingState && this.emit('leave', leavingState.name)
   this.state = enteringState
   debug('entering ' + enteringState.name)
   enteringState && this.emit('enter ' + enteringState.name)
+  enteringState && this.emit('enter', enteringState.name)
   return this
 }
 
