@@ -32,13 +32,14 @@ State.prototype.trigger = function trigger(actionName) {
 }
 
 function State(options) {
-  this.STATE_SEPARATOR = '.'
   options = options || {}
   this.name = options.name
   this.parent = options.parent
   this.states = options.states || new Collection().key('name')
   this.actions = options.actions || new Collection().key('name')
 }
+
+State.SEPARATOR = '.'
 
 State.prototype.addState = function addState(state) {
   state.parent = this
@@ -71,7 +72,7 @@ State.prototype.hasAction = function hasAction(action) {
 
 State.prototype.getPath = function getPath() {
   if (!this.parent) return '';
-  return this.parent.getPath(this.parent) + SEPARATOR + target.name
+  return this.parent.getPath(this.parent) + State.SEPARATOR + target.name
 }
 
 function Action(options) {
@@ -83,9 +84,9 @@ module.exports.State = State
 module.exports.Action = Action
 
 State.prototype.setState = function setState(stateNames) {
-  if (typeof stateNames === 'string' && !!~stateNames.indexOf(this.STATE_SEPARATOR)) {
+  if (typeof stateNames === 'string' && !!~stateNames.indexOf(State.SEPARATOR)) {
     debug('try set nested state to ' + stateNames)
-    this._setNestedState(stateNames.split(this.STATE_SEPARATOR))
+    this._setNestedState(stateNames.split(State.SEPARATOR))
     return this
   }
 
