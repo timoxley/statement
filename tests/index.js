@@ -84,13 +84,13 @@ describe('Machine Operations', function() {
     })
     describe('events', function() {
       it('fires "leave state.name" when leaving a state', function(done) {
-        machine.once('leave disabled', function() {
+        machine.once('leave Disabled', function() {
           done()
         })
         machine.trigger('enable')
       })
       it('fires "enter state.name" when entering a state', function(done) {
-        machine.once('enter enabled', function() {
+        machine.once('enter Enabled', function() {
           done()
         })
         machine.trigger('enable')
