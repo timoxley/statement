@@ -1,12 +1,10 @@
+'use strict'
+
 var Emitter = require('emitter')
 var Collection = require('collection')
+var debug = require('debug')('statemachine')
 
 module.exports = State
-
-function State() {
-  this.states = new Collection().key('name')
-  this.defaultState()
-}
 
 Emitter(State.prototype)
 
@@ -24,14 +22,17 @@ State.prototype.getState = function getState(stateName) {
 
 State.prototype.trigger = function trigger(actionName) {
   var currentState = this.getState()
-  if (!currentState) throw new Error('Cannot trigger actions if there is no state!')
+  if (!currentState) throw new Error('Cannot trigger action '+actionName+' if there is no state!')
+  debug('triggering ' + actionName + ' from ' + currentState.name)
   var currentAction = currentState.getAction(actionName)
   if (!currentAction) return this
+  debug('success.')
   this.setState(currentAction.target)
   return this
 }
 
 function State(options) {
+  this.STATE_SEPARATOR = '.'
   options = options || {}
   this.name = options.name
   this.parent = options.parent
@@ -81,12 +82,37 @@ function Action(options) {
 module.exports.State = State
 module.exports.Action = Action
 
-State.prototype.setState = function setState(newStateName) {
+State.prototype.setState = function setState(stateNames) {
+  if (typeof stateNames === 'string' && !!~stateNames.indexOf(this.STATE_SEPARATOR)) {
+    debug('try set nested state to ' + stateNames)
+    this._setNestedState(stateNames.split(this.STATE_SEPARATOR))
+    return this
+  }
+
+  var newStateName = stateNames
   if (!newStateName) throw new Error('Invalid State: ' + newStateName)
   var enteringState = this.getState(newStateName)
   var leavingState = this.state
-  leavingState && this.emit('leave' + leavingState.name)
+  debug('leaving ' + enteringState.name)
+  leavingState && this.emit('leave ' + leavingState.name)
   this.state = enteringState
-  enteringState && this.emit('enter' + enteringState.name)
+  debug('entering ' + enteringState.name)
+  enteringState && this.emit('enter ' + enteringState.name)
   return this
+}
+
+State.prototype._setNestedState = function(states) {
+  var childName = states.shift()
+  if (!childName) return this
+  this.setState(childName)
+  var child = this.getState(childName)
+  return child._setNestedState(states)
+}
+
+State.prototype.getHeirarchy = function getHeirarchy(states) {
+  if (!states || !states.length) return this.getHeirarchy([this.getState()])
+  var currentState = states[states.length - 1]
+  var childState = currentState.getState()
+  if (childState) return this.getHeirarchy(states.concat(childState))
+  return states
 }

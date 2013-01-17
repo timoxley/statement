@@ -1,3 +1,5 @@
+"use strict"
+
 var assert = require('timoxley-assert')
 
 var Machine = require('state-machine')
@@ -16,10 +18,10 @@ describe('State', function() {
     var disabledState, enabledState, action
     beforeEach(function() {
       disabledState = new State({
-        name: 'Initial'
+        name: 'Disabled'
       })
       enabledState = new State({
-        name: 'TargetState'
+        name: 'Enabled'
       })
       action = new Action({
         name: 'enable',
@@ -44,10 +46,10 @@ describe('Machine Operations', function() {
   var machine, disabledState, enabledState, action
   beforeEach(function() {
     disabledState = new State({
-      name: 'Initial'
+      name: 'Disabled'
     })
     enabledState = new State({
-      name: 'TargetState'
+      name: 'Enabled'
     })
     action = new Action({
       name: 'enable',
@@ -57,53 +59,95 @@ describe('Machine Operations', function() {
     machine = new Machine()
   })
 
-  it('can add states', function() {
-    machine.addState(disabledState)
-    machine.hasState(disabledState)
+  describe('with no states', function() {
+    it('can add states', function() {
+      machine.addState(disabledState)
+      machine.hasState(disabledState)
+    })
   })
+  describe('with states', function() {
+    beforeEach(function() {
+      machine.addState(disabledState)
+      machine.addState(enabledState)
+    })
 
-  it('has an initial state', function() {
-    machine.addState(disabledState)
-    machine.addState(enabledState)
-    assert.strictEqual(machine.getState(), disabledState)
-  })
+    it('has an initial state', function() {
+      assert.strictEqual(machine.getState(), disabledState)
+    })
 
-  it('can set state', function() {
-    machine.addState(disabledState)
-    machine.addState(enabledState)
-    machine.setState(enabledState)
-    assert.strictEqual(machine.getState(), enabledState)
-    // test by name
-    machine.setState(disabledState.name)
-    assert.strictEqual(machine.getState(), disabledState)
-  })
-
-  it('sets parent of states', function() {
-    machine.addState(disabledState)
-    assert.strictEqual(disabledState.parent, machine)
-  })
-
-  describe('triggering', function() {
-    it('throws if triggering on no state', function() {
-      assert.throws(function() {
+    it('can set state', function() {
+      machine.setState(enabledState)
+      assert.strictEqual(machine.getState(), enabledState)
+      // test by name
+      machine.setState(disabledState.name)
+      assert.strictEqual(machine.getState(), disabledState)
+    })
+    describe('events', function() {
+      it('fires "leave state.name" when leaving a state', function(done) {
+        machine.once('leave disabled', function() {
+          done()
+        })
+        machine.trigger('enable')
+      })
+      it('fires "enter state.name" when entering a state', function(done) {
+        machine.once('enter enabled', function() {
+          done()
+        })
         machine.trigger('enable')
       })
     })
 
-    it('can trigger actions', function() {
-      machine.addState(disabledState)
-      machine.addState(enabledState)
-      machine.trigger('enable')
-      assert.strictEqual(machine.getState(), enabledState)
+    it('sets parent of states', function() {
+      assert.strictEqual(disabledState.parent, machine)
     })
 
-    it('does nothing if action is invalid', function() {
+    describe('triggering', function() {
+      it('throws if triggering on no state', function() {
+        assert.throws(function() {
+          var noStatesMachine = new Machine()
+          noStatesMachine.trigger('enable')
+        })
+      })
+
+      it('triggering actions changes state', function() {
+        machine.trigger('enable')
+        assert.strictEqual(machine.getState(), enabledState)
+      })
+      it('does nothing if action is invalid', function() {
+        machine.setState(enabledState)
+        machine.trigger('enable') // does nothing, 'enable' action not defined on enabledState
+        assert.strictEqual(machine.state, enabledState)
+      })
+    })
+  })
+  describe('substates', function() {
+    var heatState, coolState
+    beforeEach(function() {
       machine.addState(disabledState)
       machine.addState(enabledState)
-      machine.trigger('enable')
-      assert.strictEqual(machine.state, enabledState)
-      machine.trigger('enable') // does nothing
-      assert.strictEqual(machine.state, enabledState)
+      heatState = new State({
+        name: 'Heating'
+      })
+      coolState = new State({
+        name: 'Cooling'
+      })
+      machine.getState('Enabled')
+      .addState(heatState)
+      .addState(coolState)
+    })
+    describe('substates and setState()', function() {
+      it('allows substates', function() {
+        machine.setState('Enabled.Heating')
+        assert.deepEqual(machine.getHeirarchy(), [enabledState, heatState])
+      })
+    })
+    describe('getHeirarchy()', function() {
+      it('provides current state heirarchy', function() {
+        machine.setState('Enabled')
+        .getState('Enabled')
+            .setState('Heating')
+        assert.deepEqual(machine.getHeirarchy(), [enabledState, heatState])
+      })
     })
   })
 })

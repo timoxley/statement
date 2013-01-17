@@ -6,7 +6,8 @@
   "keywords": [],
   "dependencies": {
     "component/emitter": "*",
-    "timoxley/collection": "*"
+    "timoxley/collection": "*",
+    "visionmedia/debug": "*"
   },
   "development": {
     "timoxley/assert": "*"
