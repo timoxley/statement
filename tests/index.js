@@ -95,7 +95,6 @@ describe('Machine Operations', function() {
       var transitions = []
       function push(action, state) {
         transitions.push(action + ' ' + state)
-        console.log('transitions', transitions)
         if (transitions.length === EXPECTED) {
           assert.deepEqual(transitions, [
             'leave Disabled',
