@@ -1,15 +1,11 @@
 
 # state-machine
 
-  State Machine
+  State Machine TBA. Come back later.
 
 ## Installation
 
     $ component install timoxley/state-machine
-
-## API
-
-   
 
 ## License
 
