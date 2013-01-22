@@ -72,7 +72,7 @@ describe('Machine Operations', function() {
     })
 
     it('has an initial state', function() {
-      assert.strictEqual(machine.getState(), disabledState)
+      assert.strictEqual(machine.getState().name, disabledState.name)
     })
 
     it('can set state', function() {
