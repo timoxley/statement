@@ -152,34 +152,4 @@ describe('Machine Operations', function() {
       })
     })
   })
-  describe('substates', function() {
-    var heatState, coolState
-    beforeEach(function() {
-      machine.addState(disabledState)
-      machine.addState(enabledState)
-      heatState = new State({
-        name: 'Heating'
-      })
-      coolState = new State({
-        name: 'Cooling'
-      })
-      machine.getState('Enabled')
-      .addState(heatState)
-      .addState(coolState)
-    })
-    describe('substates and setState()', function() {
-      it('allows substates', function() {
-        machine.setState('Enabled.Heating')
-        assert.deepEqual(machine.getHeirarchy(), [enabledState, heatState])
-      })
-    })
-    describe('getHeirarchy()', function() {
-      it('provides current state heirarchy', function() {
-        machine.setState('Enabled')
-        .getState('Enabled')
-            .setState('Heating')
-        assert.deepEqual(machine.getHeirarchy(), [enabledState, heatState])
-      })
-    })
-  })
 })
