@@ -2,7 +2,7 @@
 
 var assert = require('timoxley-assert')
 
-var Machine = require('state-machine')
+var Machine = require('state-machine/state-machine')
 var State = Machine.State
 var Action = Machine.Action
 
