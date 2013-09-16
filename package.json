@@ -1,0 +1,22 @@
+{
+  "name": "state-machine",
+  "version": "0.0.0",
+  "description": "State Machine TBA. Come back later.",
+  "main": "index.js",
+  "directories": {
+    "example": "examples",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/timoxley/state-machine.git"
+  },
+  "author": "",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/timoxley/state-machine/issues"
+  }
+}
