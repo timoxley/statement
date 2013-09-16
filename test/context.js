@@ -13,7 +13,7 @@ var states = {
 }
 
 test('enter state events get a "context"', function(t) {
-  t.plan(4)
+  t.plan(5)
   var disabledContext = undefined
   var enabledContext = undefined
   var machine = new Machine(states, 'Disabled', function() {
@@ -28,8 +28,12 @@ test('enter state events get a "context"', function(t) {
       t.ok(enabledContext)
       t.notEqual(enabledContext, disabledContext)
       t.equal(disabledContext, this)
+      t.equal(this.emit, enabledContext.emit)
       t.ok(disabledContext.someData)
     })
     machine.trigger('disable')
   })
 })
+
+
+
