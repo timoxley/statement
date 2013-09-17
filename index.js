@@ -1,10 +1,10 @@
 "use strict"
 
 var Emitter = require('context-emitter')
-var debug = require('debug')('Machine')
+var debug = require('debug')
 
 var Machine = module.exports = function Machine(states, initial) {
-  debug('new machine', states, initial)
+  debug('Machine')('new machine', states, initial)
   var args = arguments
   this.states = Object.keys(states).reduce(function(obj, stateName) {
     var state = states[stateName]
@@ -29,44 +29,83 @@ var Machine = module.exports = function Machine(states, initial) {
 
 Machine.prototype = Object.create(Emitter.prototype, {constructor: Machine})
 
+Machine.prototype.debug = function() {
+  return debug(this.name || 'Machine').apply(null, arguments)
+}
+
 Machine.prototype.go = function go(stateName) {
-  debug('go to state %s', stateName)
+  this.debug('go to state %s', stateName)
   if (!this.states[stateName]) {
-    debug('missing target state: %s', stateName)
+    this.debug('missing target state: %s', stateName)
     return
   }
 
+  // only 'leave' if we have a state
   if (this.state) {
-    debug('leave', this.state.name, this.state)
-    this.emit('leave', this.state.name)
-    this.emit('leave ' + this.state.name)
+    this.emit('before leave', this.state.name, this.state.context)
+    this.emit('before leave ' + this.state.name, this.state.context)
+
+    this.debug('leave', this.state.name, this.state)
+    this.emit('leave', this.state.name, this.state.context)
+    this.emit('leave ' + this.state.name,  this.state.context)
+
+    this.emit('after leave', this.state.name, this.state.context)
+    this.emit('after leave ' + this.state.name, this.state.context)
   }
-  debug('setting state from %s to %s', this.state && this.state.name, this.states[stateName].name)
+
+  this.previous = this.state
+
+  this.debug('setting state from %s to %s', this.state && this.state.name, this.states[stateName].name)
+
   this.state = this.states[stateName]
   this.ctx = this.state.context
+
   var args = [].slice.call(arguments, 1)
+  //console.log('queue', fn)
+  //this.once('after enter ' + this.state.name, fn.bind(this))
+
+  // trigger events on next tick so handlers can be configured
   process.nextTick(function() {
-    debug.apply(null, ['enter', this.state.name, this.state].concat(args))
-    this.emit.apply(this, ['enter', this.state].concat(args))
+    this.emit.apply(this, ['before enter', this.state.name, this.state.context].concat(args))
+    this.emit.apply(this, ['before enter ' + this.state.name].concat(args))
+
+    this.debug.apply(this, ['enter', this.state.name, this.state].concat(args))
+
+    this.emit.apply(this, ['enter', this.state.name, this.state.context].concat(args))
     this.emit.apply(this, ['enter ' + this.state.name].concat(args))
-    debug('in state %s', this.state.name)
+
+    this.emit.apply(this, ['after enter', this.state.name, this.state.context].concat(args))
+    this.emit.apply(this, ['after enter ' + this.state.name].concat(args))
+    this.debug('in state %s', this.state.name)
   }.bind(this))
 }
 
 Machine.prototype.trigger = function trigger(actionName) {
-  debug('trigger %s in %s', actionName, this.state.name)
-  if (!this.state) return
+
+  var args = [].slice.call(arguments, 1)
+
+  this.debug('trigger %s in %s', actionName, this.state && this.state.name, args)
+
+  if (!this.state) {
+    this.debug('no current state')
+    return
+  }
   var stateName = this.state.actions[actionName]
   if (!stateName) {
-    debug('action %s missing target state:', actionName, stateName)
+    this.debug('action %s missing target state:', actionName, stateName)
+    return
+  }
+  if (typeof stateName === 'function') {
+    this.debug('executing action %s', actionName)
+    var fn = stateName
+    fn.apply(this.state.context, args)
+    return
+  }
+  if (!this.states[stateName]) {
+    this.debug('action %s has invalid target state:', actionName, stateName)
     return
   }
 
-  if (!this.states[stateName]) {
-    debug('action %s has invalid target state:', actionName, stateName)
-    return
-  }
-  var args = [].slice.call(arguments, 1)
   process.nextTick(function() {
     this.emit.apply(this, [actionName].concat(args))
     this.go.apply(this, [stateName].concat(args))
