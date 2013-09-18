@@ -5,32 +5,39 @@ var debug = require('debug')
 
 var Machine = module.exports = function Machine(states, initial) {
   debug('Machine')('new machine', states, initial)
+  Emitter.call(this)
+
   var args = arguments
-  this.states = Object.keys(states).reduce(function(obj, stateName) {
-    var state = states[stateName]
-    obj[stateName] = {
-      name: stateName,
-      actions: states[stateName],
-      context: Object.create(this)
-    }
-    return obj
-  }.bind(this), {})
+
+  this.states = {}
+  Object.keys(states).forEach(function(name) {
+    this.add(name, states[name])
+  }, this)
 
   this.initial = initial || Object.keys(states)[0]
-  Emitter.call(this)
+
+  this.trigger = Machine.prototype.trigger.bind(this)
+
   process.nextTick(function() {
     if (typeof args[args.length - 1] === 'function') {
       this.once('enter '+this.initial, args[args.length - 1])
     }
     this.go(this.initial)
   }.bind(this))
-  this.trigger = Machine.prototype.trigger.bind(this)
 }
 
 Machine.prototype = Object.create(Emitter.prototype, {constructor: Machine})
 
 Machine.prototype.debug = function() {
   return debug(this.name || 'Machine').apply(null, arguments)
+}
+
+Machine.prototype.add = function add(name, actions, fn) {
+  this.states[name] = {
+    name: name,
+    actions: actions,
+    context: Object.create(this)
+  }
 }
 
 Machine.prototype.go = function go(stateName) {
@@ -61,8 +68,6 @@ Machine.prototype.go = function go(stateName) {
   this.ctx = this.state.context
 
   var args = [].slice.call(arguments, 1)
-  //console.log('queue', fn)
-  //this.once('after enter ' + this.state.name, fn.bind(this))
 
   // trigger events on next tick so handlers can be configured
   process.nextTick(function() {
@@ -90,17 +95,20 @@ Machine.prototype.trigger = function trigger(actionName) {
     this.debug('no current state')
     return
   }
+
   var stateName = this.state.actions[actionName]
   if (!stateName) {
     this.debug('action %s missing target state:', actionName, stateName)
     return
   }
+
   if (typeof stateName === 'function') {
     this.debug('executing action %s', actionName)
     var fn = stateName
     fn.apply(this.state.context, args)
     return
   }
+
   if (!this.states[stateName]) {
     this.debug('action %s has invalid target state:', actionName, stateName)
     return

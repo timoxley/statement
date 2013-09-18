@@ -16,7 +16,10 @@ test('actions transition to other states', function(t) {
   t.plan(1)
   var machine = new Machine(states, 'Disabled', function() {
     machine.trigger('enable')
-    t.equal(machine.state.name, 'Enabled')
+
+    machine.once('enter Enabled', function(actual) {
+      t.equal(machine.state.name, 'Enabled')
+    })
   })
 })
 
