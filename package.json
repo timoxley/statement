@@ -18,5 +18,8 @@
   "license": "BSD",
   "bugs": {
     "url": "https://github.com/timoxley/state-machine/issues"
+  },
+  "dependencies": {
+    "debug": "~0.7.2"
   }
 }
