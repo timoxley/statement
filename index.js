@@ -24,12 +24,17 @@ var Machine = module.exports = function Machine(states, initial) {
     }
     this.go(this.initial)
   }.bind(this))
+  this.name = "Machine " + parseInt(String(Math.random()).slice(2), 10).toString(16)
 }
 
 Machine.prototype = Object.create(Emitter.prototype, {constructor: Machine})
 
 Machine.prototype.debug = function() {
-  return debug(this.name || 'Machine').apply(null, arguments)
+  return debug(this.name).apply(null, arguments)
+}
+
+Machine.prototype.debug.enable = function(namespace) {
+  return debug.enable(namespace || this.name)
 }
 
 Machine.prototype.add = function add(name, actions, fn) {
