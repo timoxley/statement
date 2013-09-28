@@ -20,6 +20,8 @@
     "url": "https://github.com/timoxley/state-machine/issues"
   },
   "dependencies": {
-    "debug": "~0.7.2"
+    "debug": "~0.7.2",
+    "route-component": "~0.2.0",
+    "context-emitter": "0.0.1"
   }
 }

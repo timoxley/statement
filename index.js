@@ -2,6 +2,7 @@
 
 var Emitter = require('context-emitter')
 var debug = require('debug')
+var Route = require('route-component')
 
 var Machine = module.exports = function Machine(states, initial) {
   debug('Machine')('new machine', states, initial)
@@ -25,9 +26,42 @@ var Machine = module.exports = function Machine(states, initial) {
     this.go(this.initial)
   }.bind(this))
   this.name = "Machine " + parseInt(String(Math.random()).slice(2), 10).toString(16)
+  this.on('newListener', function() {
+    console.log('new Listener!', arguments)
+  })
 }
 
 Machine.prototype = Object.create(Emitter.prototype, {constructor: Machine})
+
+/**
+ * Add wildcard support to emitter.
+ */
+
+Machine.prototype.emit = function(type, event) {
+  var self = this
+  var args = [].slice.call(arguments)
+  this.routes = this.routes || []
+  if (type === 'newListener') {
+    this.routes.push(new Route(toRoute(event)))
+    return Emitter.prototype.emit.apply(this, args)
+  } else if (type === 'removeListener') {
+    this.routes = this.routes.filter(function(route) {
+      return route.path !== toRoute(event)
+    })
+    return Emitter.prototype.emit.apply(this, args)
+  } else {
+    this.routes.filter(function(route) {
+      return route.match(toRoute(type))
+    }).forEach(function(route) {
+      var matches = route.match(toRoute(type))
+      var routeEventName = fromRoute(route.path)
+      Emitter.prototype.emit.apply(self, [routeEventName, matches].concat(args.slice(1)))
+    })
+  }
+}
+
+function toRoute(str) { return str.replace(' ', '/', 'g') }
+function fromRoute(str) { return str.replace('/', ' ', 'g') }
 
 Machine.prototype.debug = function() {
   return debug(this.name).apply(null, arguments)
