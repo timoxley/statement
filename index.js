@@ -6,7 +6,7 @@ var Route = require('route-component')
 
 var Machine = module.exports = function Machine(states, initial) {
   debug('Machine')('new machine', states, initial)
-  Emitter.call(this)
+  if (this.constructor === Machine) Emitter.call(this, this)
 
   var args = arguments
 
