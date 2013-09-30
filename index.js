@@ -25,10 +25,13 @@ var Machine = module.exports = function Machine(states, initial) {
     }
     this.go(this.initial)
   }.bind(this))
+
   this.name = "Machine " + parseInt(String(Math.random()).slice(2), 10).toString(16)
-  this.on('newListener', function() {
-    console.log('new Listener!', arguments)
-  })
+
+  var enable = this.debug.enable
+  this.debug = this.debug.bind(this)
+  this.debug.enable = enable.bind(this)
+
 }
 
 Machine.prototype = Object.create(Emitter.prototype, {constructor: Machine})
@@ -64,7 +67,15 @@ function toRoute(str) { return str.replace(' ', '/', 'g') }
 function fromRoute(str) { return str.replace('/', ' ', 'g') }
 
 Machine.prototype.debug = function() {
-  return debug(this.name).apply(null, arguments)
+  var args = [].slice.call(arguments)
+  if (window.chrome) {
+    // add colour magics
+    var firstArg = args[0]
+    if (/^trigger/.test(firstArg)) args = ['%c' + args[0], 'color: #CDBE70'].concat(args.slice(1))
+    if (/^leave/.test(firstArg)) args = ['%c' + args[0], 'color: 	#EEDC82'].concat(args.slice(1))
+    if (/^enter/.test(firstArg)) args = ['%c' + args[0], 'color: #EEC900'].concat(args.slice(1))
+  }
+  return debug(this.name).apply(null, args)
 }
 
 Machine.prototype.debug.enable = function(namespace) {
@@ -80,7 +91,6 @@ Machine.prototype.add = function add(name, actions, fn) {
 }
 
 Machine.prototype.go = function go(stateName) {
-  this.debug('go to state %s', stateName)
   if (!this.states[stateName]) {
     this.debug('missing target state: %s', stateName)
     return
@@ -91,7 +101,7 @@ Machine.prototype.go = function go(stateName) {
     this.emit('before leave', this.state.name, this.state.context)
     this.emit('before leave ' + this.state.name, this.state.context)
 
-    this.debug('leave', this.state.name, this.state)
+    this.debug('leave %s', this.state.name, this.state)
     this.emit('leave', this.state.name, this.state.context)
     this.emit('leave ' + this.state.name,  this.state.context)
 
@@ -100,8 +110,6 @@ Machine.prototype.go = function go(stateName) {
   }
 
   this.previous = this.state
-
-  this.debug('setting state from %s to %s', this.state && this.state.name, this.states[stateName].name)
 
   this.state = this.states[stateName]
   this.ctx = this.state.context
@@ -113,14 +121,13 @@ Machine.prototype.go = function go(stateName) {
     this.emit.apply(this, ['before enter', this.state.name, this.state.context].concat(args))
     this.emit.apply(this, ['before enter ' + this.state.name].concat(args))
 
-    this.debug.apply(this, ['enter', this.state.name, this.state].concat(args))
+    this.debug.apply(this, ['enter %s', this.state.name, this.state].concat(args))
 
     this.emit.apply(this, ['enter', this.state.name, this.state.context].concat(args))
     this.emit.apply(this, ['enter ' + this.state.name].concat(args))
 
     this.emit.apply(this, ['after enter', this.state.name, this.state.context].concat(args))
     this.emit.apply(this, ['after enter ' + this.state.name].concat(args))
-    this.debug('in state %s', this.state.name)
   }.bind(this))
 }
 
