@@ -138,7 +138,10 @@ Machine.prototype.trigger = function trigger(actionName) {
   this.debug('trigger %s in %s', actionName, this.state && this.state.name, args)
 
   if (!this.state) {
-    this.debug('no current state')
+    this.debug('no current state. action %s queued.', actionName)
+    this.once('enter', function() {
+      this.trigger.apply(this, [actionName].concat(args))
+    }.bind(this))
     return
   }
 
