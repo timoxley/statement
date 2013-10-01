@@ -98,14 +98,15 @@ Machine.prototype.debug = function() {
 }
 
 Machine.prototype.debug.enable = function(namespace) {
-  return debug.enable(namespace || this.name)
+  debug.enable(namespace || this.name)
+  return debug
 }
 
 Machine.prototype.add = function add(name, actions, fn) {
   this.states[name] = {
     name: name,
     actions: actions,
-    context: Object.create(this)
+    context: this.getContext(name)
   }
 }
 
@@ -151,6 +152,16 @@ Machine.prototype.go = function go(stateName) {
     this.emit.apply(this, ['after enter', this.state.name, this.state.context].concat(args))
     this.emit.apply(this, ['after enter ' + this.state.name].concat(args))
   }.bind(this))
+}
+
+Machine.prototype.getContext = function getContext(name) {
+  this.contexts = this.contexts || Object.create(null)
+  return name.split('/').reduce(function(previous, current, index, arr) {
+    var path = arr.slice(0, index + 1).join('/')
+    if (this.contexts[path]) return this.contexts[path]
+    this.contexts[path] = Object.create(previous)
+    return this.contexts[path]
+  }.bind(this), this)
 }
 
 Machine.prototype.trigger = function trigger(actionName) {
