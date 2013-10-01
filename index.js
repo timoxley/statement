@@ -31,6 +31,7 @@ var Machine = module.exports = function Machine(states, initial) {
   var enable = this.debug.enable
   this.debug = this.debug.bind(this)
   this.debug.enable = enable.bind(this)
+  this.cancel = this.cancel.bind(this)
 
 }
 
@@ -184,8 +185,17 @@ Machine.prototype.trigger = function trigger(actionName) {
     return
   }
 
-  process.nextTick(function() {
-    this.emit.apply(this, [actionName].concat(args))
-    this.go.apply(this, [stateName].concat(args))
+  this.emit.apply(this, [actionName].concat(args))
+  this.queue(function() {
+    if (this._cancelled) {
+      debug('action %s cancelled.', actionName)
+      this._cancelled = false
+    } else {
+      this.go.apply(this, [stateName].concat(args))
+    }
   }.bind(this))
+}
+
+Machine.prototype.cancel = function cancel() {
+  this._cancelled = true
 }
