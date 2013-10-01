@@ -61,10 +61,28 @@ Machine.prototype.emit = function(type, event) {
       Emitter.prototype.emit.apply(self, [routeEventName, matches].concat(args.slice(1)))
     })
   }
+
 }
 
 function toRoute(str) { return str.replace(' ', '/', 'g') }
 function fromRoute(str) { return str.replace('/', ' ', 'g') }
+
+
+Machine.prototype.queue = function(fn) {
+  this._queue = this._queue || []
+  this._queue.push(fn)
+  this.dequeue()
+}
+
+Machine.prototype.dequeue = function() {
+  var fn = this._queue.shift()
+  if (!fn) return
+  process.nextTick(function() {
+    fn()
+    this.dequeue()
+  }.bind(this))
+}
+
 
 Machine.prototype.debug = function() {
   var args = [].slice.call(arguments)
@@ -98,26 +116,29 @@ Machine.prototype.go = function go(stateName) {
 
   // only 'leave' if we have a state
   if (this.state) {
-    this.emit('before leave', this.state.name, this.state.context)
-    this.emit('before leave ' + this.state.name, this.state.context)
+    this.queue(function() {
+      this.emit('before leave', this.state.name, this.state.context)
+      this.emit('before leave ' + this.state.name, this.state.context)
 
-    this.debug('leave %s', this.state.name, this.state)
-    this.emit('leave', this.state.name, this.state.context)
-    this.emit('leave ' + this.state.name,  this.state.context)
+      this.debug('leave %s', this.state.name, this.state)
+      this.emit('leave', this.state.name, this.state.context)
+      this.emit('leave ' + this.state.name,  this.state.context)
 
-    this.emit('after leave', this.state.name, this.state.context)
-    this.emit('after leave ' + this.state.name, this.state.context)
+      this.emit('after leave', this.state.name, this.state.context)
+      this.emit('after leave ' + this.state.name, this.state.context)
+    }.bind(this))
   }
-
-  this.previous = this.state
-
-  this.state = this.states[stateName]
-  this.ctx = this.state.context
 
   var args = [].slice.call(arguments, 1)
 
   // trigger events on next tick so handlers can be configured
-  process.nextTick(function() {
+  this.queue(function() {
+
+    this.previous = this.state
+
+    this.state = this.states[stateName]
+    this.ctx = this.state.context
+
     this.emit.apply(this, ['before enter', this.state.name, this.state.context].concat(args))
     this.emit.apply(this, ['before enter ' + this.state.name].concat(args))
 
