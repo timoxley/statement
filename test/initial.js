@@ -20,12 +20,12 @@ test('initial state', function(t) {
   setTimeout(function() {
     t.equal(machine1.state.name, 'Disabled')
     t.equal(machine2.state.name, 'Enabled')
-  })
+  }, 100)
 })
 
 test('initial state event', function(t) {
   t.plan(1)
-  var machine = new Machine(states,  'Disabled')
+  var machine = new Machine(states, 'Disabled')
   machine.on('enter Disabled', function() {
     t.equal(machine.state.name, 'Disabled')
   })

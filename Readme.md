@@ -1,11 +1,10 @@
+# statement
 
-# state-machine
+### A state machine for node or the browser.
 
-  State Machine TBA. Come back later.
+#### TODO:
 
-## Installation
-
-    $ component install timoxley/state-machine
+* Readme
 
 ## License
 

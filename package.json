@@ -1,27 +1,30 @@
 {
-  "name": "state-machine",
+  "name": "statement",
   "version": "0.0.0",
-  "description": "State Machine TBA. Come back later.",
+  "description": "Simple State Machine",
   "main": "index.js",
   "directories": {
     "example": "examples",
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": ""
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/timoxley/state-machine.git"
+    "url": "git://github.com/timoxley/statement.git"
   },
   "author": "",
   "license": "BSD",
   "bugs": {
-    "url": "https://github.com/timoxley/state-machine/issues"
+    "url": "https://github.com/timoxley/statement/issues"
   },
   "dependencies": {
-    "debug": "~0.7.2",
+    "debug": "git+ssh://git@github.com:timoxley/debug.git#bug/browserify-broken",
     "route-component": "~0.2.0",
     "context-emitter": "0.0.1"
+  },
+  "devDependencies": {
+    "tape-run": "~0.1.1"
   }
 }

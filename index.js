@@ -33,6 +33,18 @@ var Machine = module.exports = function Machine(states, initial) {
   this.debug.enable = enable.bind(this)
   this.cancel = this.cancel.bind(this)
 
+  this.on('removeListener', function(event) {
+    this.routes = this.routes || []
+    this.routes = this.routes.filter(function(route) {
+      return route.path !== toRoute(event)
+    })
+  }.bind(this))
+  this.on('newListener', function(event) {
+    this.routes = this.routes || []
+    this.routes.push(new Route(toRoute(event)))
+  }.bind(this))
+
+
 }
 
 Machine.prototype = Object.create(Emitter.prototype, {constructor: Machine})
@@ -45,23 +57,18 @@ Machine.prototype.emit = function(type, event) {
   var self = this
   var args = [].slice.call(arguments)
   this.routes = this.routes || []
-  if (type === 'newListener') {
-    this.routes.push(new Route(toRoute(event)))
+  if (type === 'newListener' || type === 'removeListener') {
+    // ignore new/remove listener events
     return Emitter.prototype.emit.apply(this, args)
-  } else if (type === 'removeListener') {
-    this.routes = this.routes.filter(function(route) {
-      return route.path !== toRoute(event)
-    })
-    return Emitter.prototype.emit.apply(this, args)
-  } else {
-    this.routes.filter(function(route) {
-      return route.match(toRoute(type))
-    }).forEach(function(route) {
-      var matches = route.match(toRoute(type))
-      var routeEventName = fromRoute(route.path)
-      Emitter.prototype.emit.apply(self, [routeEventName, matches].concat(args.slice(1)))
-    })
-  }
+  } 
+  // attempt to match route
+  this.routes.filter(function(route) {
+    return route.match(toRoute(type))
+  }).forEach(function(route) {
+    var matches = route.match(toRoute(type))
+    var routeEventName = fromRoute(route.path)
+    Emitter.prototype.emit.apply(self, [routeEventName, matches].concat(args.slice(1)))
+  })
 
 }
 
@@ -87,7 +94,7 @@ Machine.prototype.dequeue = function() {
 
 Machine.prototype.debug = function() {
   var args = [].slice.call(arguments)
-  if (window.chrome) {
+  if (typeof window !== 'undefined' && window.chrome) {
     // add colour magics
     var firstArg = args[0]
     if (/^trigger/.test(firstArg)) args = ['%c' + args[0], 'color: #CDBE70'].concat(args.slice(1))
@@ -143,10 +150,10 @@ Machine.prototype.go = function go(stateName) {
 
     this.emit.apply(this, ['before enter', this.state.name, this.state.context].concat(args))
     this.emit.apply(this, ['before enter ' + this.state.name].concat(args))
-
+    
     this.debug.apply(this, ['enter %s', this.state.name, this.state].concat(args))
-
     this.emit.apply(this, ['enter', this.state.name, this.state.context].concat(args))
+    
     this.emit.apply(this, ['enter ' + this.state.name].concat(args))
 
     this.emit.apply(this, ['after enter', this.state.name, this.state.context].concat(args))
