@@ -60,7 +60,7 @@ Machine.prototype.emit = function(type, event) {
   if (type === 'newListener' || type === 'removeListener') {
     // ignore new/remove listener events
     return Emitter.prototype.emit.apply(this, args)
-  } 
+  }
   // attempt to match route
   this.routes.filter(function(route) {
     return route.match(toRoute(type))
@@ -74,7 +74,6 @@ Machine.prototype.emit = function(type, event) {
 
 function toRoute(str) { return str.replace(' ', '/', 'g') }
 function fromRoute(str) { return str.replace('/', ' ', 'g') }
-
 
 Machine.prototype.queue = function(fn) {
   this._queue = this._queue || []
@@ -90,7 +89,6 @@ Machine.prototype.dequeue = function() {
     this.dequeue()
   }.bind(this))
 }
-
 
 Machine.prototype.debug = function() {
   var args = [].slice.call(arguments)
@@ -109,7 +107,7 @@ Machine.prototype.debug.enable = function(namespace) {
   return debug
 }
 
-Machine.prototype.add = function add(name, actions, fn) {
+Machine.prototype.add = function add(name, actions) {
   this.states[name] = {
     name: name,
     actions: actions,
@@ -150,10 +148,10 @@ Machine.prototype.go = function go(stateName) {
 
     this.emit.apply(this, ['before enter', this.state.name, this.state.context].concat(args))
     this.emit.apply(this, ['before enter ' + this.state.name].concat(args))
-    
+
     this.debug.apply(this, ['enter %s', this.state.name, this.state].concat(args))
     this.emit.apply(this, ['enter', this.state.name, this.state.context].concat(args))
-    
+
     this.emit.apply(this, ['enter ' + this.state.name].concat(args))
 
     this.emit.apply(this, ['after enter', this.state.name, this.state.context].concat(args))

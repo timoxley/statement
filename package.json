@@ -20,12 +20,15 @@
     "url": "https://github.com/timoxley/statement/issues"
   },
   "dependencies": {
+    "clone": "^0.1.11",
+    "context-emitter": "0.0.1",
     "debug": "git+ssh://git@github.com:timoxley/debug.git#bug/browserify-broken",
     "route-component": "~0.2.0",
-    "context-emitter": "0.0.1"
+    "traverse": "^0.6.6"
   },
   "devDependencies": {
-    "tape-run": "~0.1.1",
-    "browserify": "~2.35.1"
+    "browserify": "~2.35.1",
+    "tape": "^2.10.2",
+    "tape-run": "~0.1.1"
   }
 }

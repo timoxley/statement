@@ -8,8 +8,8 @@ var states = {
     enable: 'Enabled'
   },
   Enabled: {
-    disable: 'Disabled',
-  },
+    disable: 'Disabled'
+  }
 }
 
 test('enter state events get a "context"', function(t) {

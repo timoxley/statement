@@ -8,8 +8,8 @@ var states = {
     enable: 'Enabled'
   },
   Enabled: {
-    disable: 'Disabled',
-  },
+    disable: 'Disabled'
+  }
 }
 
 test('initial state', function(t) {

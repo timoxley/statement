@@ -8,8 +8,8 @@ var states = {
     enable: 'Enabled'
   },
   Enabled: {
-    disable: 'Disabled',
-  },
+    disable: 'Disabled'
+  }
 }
 
 test('actions transition to other states', function(t) {
@@ -46,5 +46,4 @@ test('actions pass route components', function(t) {
       t.equal(route.state, 'Enabled')
     })
   })
-
 })
