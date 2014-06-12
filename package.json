@@ -8,7 +8,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "browserify test/index.js | tape-run --browser chrome"
+    "test": "faucet",
+    "test-browser": "browserify test/index.js | tape-run --browser chrome"
   },
   "repository": {
     "type": "git",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "browserify": "~2.35.1",
+    "faucet": "0.0.1",
     "tape": "^2.10.2",
     "tape-run": "~0.1.1"
   }
