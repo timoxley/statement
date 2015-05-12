@@ -3,7 +3,9 @@ require('./actions')
 require('./context')
 require('./normalize')
 
-require('tape')('shutdown', function(t) {
-  setTimeout(function() {window.close()})
-  t.end()
-})
+if (process.browser) {
+  require('tape')('shutdown', function(t) {
+    setTimeout(function() {window.close()})
+    t.end()
+  })
+}
