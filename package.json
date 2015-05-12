@@ -1,6 +1,6 @@
 {
   "name": "statement",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Simple State Machine",
   "main": "index.js",
   "directories": {
