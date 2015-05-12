@@ -43,8 +43,6 @@ var Machine = module.exports = function Machine(states, initial) {
     this.routes = this.routes || []
     this.routes.push(new Route(toRoute(event)))
   }.bind(this))
-
-
 }
 
 Machine.prototype = Object.create(Emitter.prototype, {constructor: Machine})
