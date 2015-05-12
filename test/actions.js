@@ -43,7 +43,6 @@ test('invalid actions trigger invalidAction event with arguments', function(t) {
     var expected = {hello: true}
 
     machine.once('invalidAction', function(actionName, actual, what) {
-      console.log('OMG', actionName, actual, what)
       t.equal(actionName, 'disable')
       t.equal(actual, expected)
     })
