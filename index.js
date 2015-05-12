@@ -55,7 +55,7 @@ Machine.prototype.emit = function(type, event) {
   var self = this
   var args = [].slice.call(arguments)
   this.routes = this.routes || []
-  if (type === 'newListener' || type === 'removeListener') {
+  if (type === 'newListener' || type === 'removeListener' || type === 'invalidAction' || type === 'missingState') {
     // ignore new/remove listener events
     return Emitter.prototype.emit.apply(this, args)
   }
@@ -65,9 +65,8 @@ Machine.prototype.emit = function(type, event) {
   }).forEach(function(route) {
     var matches = route.match(toRoute(type))
     var routeEventName = fromRoute(route.path)
-    Emitter.prototype.emit.apply(self, [routeEventName, matches].concat(args.slice(1)))
-  })
-
+    Emitter.prototype.emit.apply(this, [routeEventName, matches].concat(args.slice(1)))
+  }, this)
 }
 
 function toRoute(str) { return str.replace(' ', '/', 'g') }
@@ -115,6 +114,7 @@ Machine.prototype.add = function add(name, actions) {
 
 Machine.prototype.go = function go(stateName) {
   if (!this.states[stateName]) {
+    this.emit('missingState', stateName)
     this.debug('missing target state: %s', stateName)
     return
   }
@@ -183,7 +183,8 @@ Machine.prototype.trigger = function trigger(actionName) {
 
   var stateName = this.state.actions[actionName]
   if (!stateName) {
-    this.debug('action %s missing target state:', actionName, stateName)
+    this.emit.apply(this, ['invalidAction', actionName].concat(args))
+    this.debug('invalid action %s in state:', actionName, this.state)
     return
   }
 
@@ -195,6 +196,7 @@ Machine.prototype.trigger = function trigger(actionName) {
   }
 
   if (!this.states[stateName]) {
+    this.emit.apply(this, ['invalidAction', actionName].concat(args))
     this.debug('action %s has invalid target state:', actionName, stateName)
     return
   }

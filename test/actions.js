@@ -23,6 +23,36 @@ test('actions transition to other states', function(t) {
   })
 })
 
+test('invalid actions do not transition to other states', function(t) {
+  var machine = new Machine(states, 'Disabled', function() {
+    machine.trigger('disable')
+
+    machine.once('enter Enabled', function(actual) {
+      t.fail('should not transition')
+    })
+
+    setTimeout(function() {
+      t.end()
+    })
+  })
+})
+
+test('invalid actions trigger invalidAction event with arguments', function(t) {
+  t.plan(2)
+  var machine = new Machine(states, 'Disabled', function() {
+    var expected = {hello: true}
+
+    machine.once('invalidAction', function(actionName, actual, what) {
+      console.log('OMG', actionName, actual, what)
+      t.equal(actionName, 'disable')
+      t.equal(actual, expected)
+    })
+
+    machine.trigger('disable', expected)
+    setTimeout(function() {}, 100) // wait
+  })
+})
+
 test('actions pass arguments', function(t) {
   t.plan(1)
   var expected = {hello: true}
